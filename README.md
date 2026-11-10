@@ -120,7 +120,9 @@ pip install -e ".[test]"
 pytest
 ```
 
-テストでは、実際に受信した 40 種類のパケット（[tests/data/packets.txt](tests/data/packets.txt)）と、合成した FSK 信号を使います。
+テストでは、実際に受信した 40 種類のパケット（[tests/data/packets.txt](tests/data/packets.txt)）、実際に記録した 1 回分の送信（[tests/data/ch1_burst.cu8](tests/data/ch1_burst.cu8)、`rtl_sdr -f 429900000 -s 2400000` で記録した 0.13 秒分）、合成した FSK 信号を使います。
+
+また、子機 5 台を同時に動かして 14 分間記録したデータをこのライブラリで解読し、50 回の送信をすべて正しく読めることを確かめました。
 
 ## 電波法について
 

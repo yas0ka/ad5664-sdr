@@ -1,0 +1,4 @@
+20 1B 00 2E CC 02 00 00 00 00 AC 00 58 00 C7 03 05
+# Expected packet in ch1_burst.cu8: one real transmission from an AD-5664-01 on CH1,
+# recorded with rtl_sdr -f 429900000 -s 2400000 (unsigned 8-bit I/Q, 0.13 s).
+# 21.6 C, 46 %, WBGT 17.2, VH 8.8

@@ -1,7 +1,6 @@
 from pathlib import Path
 
 import numpy as np
-import pytest
 
 from ad5664 import parse_hex
 from ad5664.demod import BurstDetector, cu8_to_complex, decode_burst
@@ -56,14 +55,24 @@ def test_burst_detector_finds_burst_in_stream():
 SAMPLE = DATA / 'ch1_burst.cu8'
 
 
-@pytest.mark.skipif(not SAMPLE.exists(), reason='recorded sample not present')
 def test_recorded_sample():
-    rx = list(read_file(SAMPLE))
+    """One real transmission recorded with rtl_sdr (the file holds only the burst,
+    so it is passed to decode_burst directly rather than through BurstDetector)."""
+    expected = parse_hex(SAMPLE.with_suffix('.txt').read_text().split('\n')[0]).raw
+    cf, packets = decode_burst(cu8_to_complex(SAMPLE.read_bytes()), FS)
+    assert packets == [expected] * 3
+
+
+def test_recorded_sample_in_stream(tmp_path):
+    """The same burst with quiet samples around it, read through read_file()."""
+    quiet = bytes([127, 128]) * (FS // 2)
+    f = tmp_path / 'capture.cu8'
+    f.write_bytes(quiet + SAMPLE.read_bytes() + quiet)
+    rx = list(read_file(f))
     assert len(rx) == 1
-    r = rx[0]
-    assert r.repeats == 3
-    assert r.reading.channel == 1
-    assert r.reading.raw == parse_hex(SAMPLE.with_suffix('.txt').read_text().split('\n')[0]).raw
+    assert rx[0].repeats == 3
+    assert rx[0].reading.channel == 1
+    assert rx[0].reading.temperature == 21.6
 
 
 def test_cu8_to_complex():
