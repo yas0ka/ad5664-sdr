@@ -1,0 +1,27 @@
+[build-system]
+requires = ["setuptools>=61"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "ad5664"
+version = "0.1.0"
+description = "Unofficial decoder for the A&D AD-5664 wireless thermo-hygrometer (429 MHz) using RTL-SDR"
+readme = "README.md"
+license = { text = "MIT" }
+requires-python = ">=3.8"
+dependencies = ["numpy"]
+keywords = ["rtl-sdr", "sdr", "fsk", "429mhz", "thermometer", "hygrometer", "wbgt"]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Topic :: Communications :: Ham Radio",
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[project.scripts]
+ad5664 = "ad5664.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]

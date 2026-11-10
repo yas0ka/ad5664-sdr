@@ -1,0 +1,11 @@
+__pycache__/
+*.pyc
+*.egg-info/
+build/
+dist/
+.venv/
+.pytest_cache/
+*.db
+# large recordings (the small test sample in tests/data is kept)
+*.cu8
+!tests/data/*.cu8
