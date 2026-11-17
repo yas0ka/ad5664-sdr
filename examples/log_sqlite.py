@@ -13,12 +13,12 @@ import ad5664
 db = sqlite3.connect(sys.argv[1] if len(sys.argv) > 1 else 'ad5664.db')
 db.execute('''CREATE TABLE IF NOT EXISTS readings (
     ts REAL, channel INTEGER, sensor_id TEXT, temperature REAL, humidity INTEGER,
-    wbgt REAL, vh REAL, raw TEXT)''')
+    wbgt REAL, vh REAL, repeats INTEGER, snr_db REAL, raw TEXT)''')
 
 for rx in ad5664.listen():
     r = rx.reading
-    db.execute('INSERT INTO readings VALUES (?,?,?,?,?,?,?,?)',
+    db.execute('INSERT INTO readings VALUES (?,?,?,?,?,?,?,?,?,?)',
                (rx.time, r.channel, '%04X' % r.sensor_id, r.temperature, r.humidity,
-                r.wbgt, r.vh, r.raw.hex()))
+                r.wbgt, r.vh, rx.repeats, rx.snr_db, r.raw.hex()))
     db.commit()
     print('CH%d %.1f C %d %%' % (r.channel, r.temperature, r.humidity), flush=True)

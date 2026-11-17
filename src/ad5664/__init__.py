@@ -6,17 +6,18 @@ Packet parsing (:mod:`ad5664.packet`) has no dependencies. Demodulating I/Q samp
 (:mod:`ad5664.demod`, :mod:`ad5664.receiver`) needs numpy, and live reception needs
 the ``rtl_sdr`` command from rtl-sdr.
 """
-from .packet import PACKET_LEN, SYNC_WORD, Reading, checksum, parse, parse_hex, verify
+from .packet import (PACKET_LEN, SYNC_WORD, Reading, checksum, parse, parse_hex, plausible, verify,
+                     volumetric_humidity)
 
-__version__ = '0.1.0'
+__version__ = '0.2.0'
 
-__all__ = ['PACKET_LEN', 'SYNC_WORD', 'Reading', 'checksum', 'parse', 'parse_hex', 'verify',
-           'listen', 'read_file']
+__all__ = ['PACKET_LEN', 'SYNC_WORD', 'Reading', 'checksum', 'parse', 'parse_hex', 'plausible',
+           'verify', 'volumetric_humidity', 'listen', 'read_file', 'scan', 'Reception', 'GainSelector']
 
 
 def __getattr__(name):
     # Import the numpy-based parts only when they are used.
-    if name in ('listen', 'read_file', 'Reception'):
+    if name in ('listen', 'read_file', 'scan', 'Reception', 'GainSelector'):
         from . import receiver
         return getattr(receiver, name)
     raise AttributeError(name)

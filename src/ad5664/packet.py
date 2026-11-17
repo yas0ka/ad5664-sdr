@@ -84,3 +84,36 @@ def parse(data, check=True):
 def parse_hex(text, check=True):
     """Like :func:`parse` but takes a hex string such as ``'2A F7 00 32 ...'``."""
     return parse(bytes.fromhex(text.replace(' ', '').replace(':', '')), check=check)
+
+
+def volumetric_humidity(temperature, humidity):
+    """Volumetric humidity [g/m3] from temperature [degC] and relative humidity [%]
+    (Tetens formula). Matches the VH the sensor sends to within about 0.2 g/m3."""
+    es = 6.1078 * 10 ** (7.5 * temperature / (temperature + 237.3))
+    return 217 * humidity / 100 * es / (273.15 + temperature)
+
+
+def plausible(data):
+    """True if ``data`` passes the checksum *and* its contents are consistent.
+
+    The 8-bit sum checksum misses errors that cancel out (for example one bit
+    flipped 0->1 and the same bit of another byte flipped 1->0). With weak signals
+    about 1 % of the packets that passed the checksum were wrong in a noise test,
+    so the decoders also require:
+
+    * byte 2 is 0x00 or 0x20,
+    * humidity 0-100 %, temperature -40 to 80 degC, next transmission in 5-140 s,
+    * the VH sent by the sensor matches the value calculated from temperature and
+      humidity (within 0.4 g/m3 or 3 %; on 191 real packets the difference was
+      -0.17 to +0.08).
+
+    Note: the temperature encoding below 0 degC has not been confirmed (see
+    docs/protocol.md), so readings from sensors below freezing may be rejected.
+    """
+    if not verify(data) or data[2] not in (0x00, 0x20):
+        return False
+    r = parse(data)
+    if not (0 <= r.humidity <= 100 and -40 <= r.temperature <= 80 and 5 <= r.next_tx_s <= 140):
+        return False
+    calc = volumetric_humidity(r.temperature, r.humidity)
+    return abs(r.vh - calc) <= max(0.4, 0.03 * calc)

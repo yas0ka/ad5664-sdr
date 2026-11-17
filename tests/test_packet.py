@@ -62,3 +62,33 @@ def test_to_dict():
     d = ad5664.parse_hex(EXAMPLE).to_dict()
     assert d['sensor_id'] == '2AF7'
     assert d['raw'].startswith('2A F7')
+
+
+def test_recorded_packets_pass_consistency_check():
+    for p in load_packets():
+        assert ad5664.plausible(p), p.hex(' ')
+    assert ad5664.plausible(bytes.fromhex(EXAMPLE))
+
+
+def test_volumetric_humidity_matches_sensor():
+    for p in load_packets():
+        r = ad5664.parse(p)
+        assert abs(ad5664.volumetric_humidity(r.temperature, r.humidity) - r.vh) < 0.2
+
+
+def test_checksum_valid_but_inconsistent_packet_rejected():
+    # Errors that cancel out in the sum: +0x10 in byte 3 (humidity 50 -> 66) and -0x10
+    # in byte 12 (VH 14.1 -> 12.5). The checksum still matches, but VH no longer fits.
+    p = bytearray.fromhex(EXAMPLE)
+    p[3] += 0x10
+    p[12] -= 0x10
+    assert ad5664.verify(p)
+    assert not ad5664.plausible(p)
+
+
+def test_unknown_flag_rejected():
+    p = bytearray.fromhex(EXAMPLE)
+    p[2] = 0x01
+    p[16] = ad5664.checksum(p)
+    assert ad5664.verify(p)
+    assert not ad5664.plausible(p)
